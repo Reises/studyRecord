@@ -1,5 +1,5 @@
 import { useState} from "react";
-import { Button, Container, IconButton, TextField, Typography, Stack, Alert } from "@mui/material";
+import { Button, Container, IconButton, TextField, Typography, Stack, Alert, Card, CardContent, List, LinearProgress, ListItem, ListItemText } from "@mui/material";
 import DeleteIcon from '@mui/icons-material/Delete';
 
 let nextId = 0;
@@ -48,7 +48,7 @@ export default function StudyRecord() {
     }
     return  (
         <>
-            <Container maxWidth="sm">
+            <Container maxWidth="sm" sx={{ mt: 4, mb: 4}}>
                 <Typography variant="h4" align="center" gutterBottom>
                     学習記録一覧
                 </Typography>
@@ -61,20 +61,31 @@ export default function StudyRecord() {
                 <Typography variant="body1">
                     <p>入力されている時間：{num}時間</p>
                 </Typography>
-                <Button variant="contained" onClick={handleRegister}>登録</Button>
+                <Button variant="contained" color="primary" onClick={handleRegister}>登録</Button>
                 {/* <Alert>{errorMessage}</Alert> */}
                 {/* エラーメッセージがあるときだけ表示 */}
                 {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
             </Stack>
-            <ul>
-                {study.map(item => (
-                    <li key={item.id}>{`${item.title}(${item.duration}時間)`}
-                    <IconButton onClick={() => handleRemove(item.id, item.duration)} aria-label="削除"><DeleteIcon /></IconButton></li>
-                ))}
-            </ul>
-            <Typography variant="body1">
-                <p>合計時間:{time} / 1000(h)</p>
-            </Typography>
+            {study.length === 0 ? (
+                <Typography color="text.secondary">まだ記録がありません</Typography>
+            ) : (
+                <Card sx={{ mt: 3, mb: 3}}>
+                    <CardContent>
+                        <Typography variant="h6">学習記録</Typography>
+                        <List>
+                            {study.map(item => (
+                                <ListItem key={item.id}>
+                                    <ListItemText primary={`${item.title}(${item.duration}時間)`} />
+                                    <IconButton onClick={() => handleRemove(item.id, item.duration)} aria-label="削除"><DeleteIcon /></IconButton>
+                                </ListItem>
+                            ))}
+                        </List>
+                    </CardContent>
+                </Card>
+            )}
+            {/* 時間の進捗をプログレスバー表示 */}
+            <LinearProgress variant="determinate" value={(time / 1000) * 100} sx={{ mt: 3, mb: 3}} />
+            <Typography variant="body2"> 合計時間:{time} / 1000(h) </Typography>
             </Container>
         </>
     )
