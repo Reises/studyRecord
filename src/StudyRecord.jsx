@@ -1,4 +1,4 @@
-import { useState} from "react";
+import { useEffect, useState} from "react";
 import { Button, Container, IconButton, TextField, Typography, Stack, Alert, Card, CardContent, List, LinearProgress, ListItem, ListItemText } from "@mui/material";
 import DeleteIcon from '@mui/icons-material/Delete';
 
@@ -12,6 +12,9 @@ export default function StudyRecord() {
     const [num, setNum] = useState(''); //  inputからの値は文字列
     const [time, setTime] = useState(0);
     const [errorMessage, setErrorMessage] = useState(''); // エラーメッセージ用のstate
+    const [isInitialized, setIsInitialized] = useState(false);  //  ローカルストレージで保存した値がsaveLocalStorage()が呼ばれることにより、表示されない問題があるため、フラグで呼ばないようにする
+
+    const storage = localStorage;   //  ストレージをlocalStorageに設定
 
     const handleRegister = () => {
         const trimmedTitle = title.trim();
@@ -46,6 +49,34 @@ export default function StudyRecord() {
         setStudy(study.filter((item) => item.id !== idToRemove));
         setTime(prevTime => prevTime - durationToRemove);
     }
+
+    //  ローカルストレージ保存機能
+    const saveLocalStorage = () => {
+        storage.setItem("study", JSON.stringify(study));
+        storage.setItem("time", time);
+        storage.setItem("nextId", nextId);  //  ページリロード時、nextIdが被ったり、そもそも登録した内容が表示されないため
+    }
+
+    //  ローカルストレージから取得
+    const getLocalStorage = () => {
+        const studyList = storage.getItem("study") || '[]';   //  ローカルストレージに値がない場合、文字列型の空の配列を取得
+        const studyTime = storage.getItem("time") || '0';   //  ローカルストレージに値がない場合、文字列型の0を取得
+        setStudy(JSON.parse(studyList));
+        setTime(parseFloat(studyTime));
+        nextId = parseInt(localStorage.getItem("nextId")) || 0; //  ローカルストレージに値がない場合、0を取得
+        setIsInitialized(true);
+    }
+
+    useEffect(() => {
+        getLocalStorage();
+    }, []);
+
+    useEffect(() => {
+        if (isInitialized === true) {
+            saveLocalStorage();
+        }
+    }, [study, time]);
+    
     return  (
         <>
             <Container maxWidth="sm" sx={{ mt: 4, mb: 4}}>
@@ -59,7 +90,7 @@ export default function StudyRecord() {
                     入力されている学習内容:{title}
                 </Typography>
                 <Typography variant="body1">
-                    <p>入力されている時間：{num}時間</p>
+                    入力されている時間：{num}時間
                 </Typography>
                 <Button variant="contained" color="primary" onClick={handleRegister}>登録</Button>
                 {/* <Alert>{errorMessage}</Alert> */}
